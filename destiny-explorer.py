@@ -5,17 +5,38 @@ import json
 import textwrap
 
 
-def show_card(card_id):
-    set_code = 'SWD16a_'
-    card_num = 20
-    url = 'http://lcg-cdn.fantasyflightgames.com/swd/' + set_code + str(card_num) + '.jpg'
+def show_card(set_code, card_num, card, args):
+    codes = {
+        'AW': ['SWD03', 'SWD02', 'SWD03_'],
+        'SoR': 'SWD04_',
+        'EaW': 'SWD07_',
+        'TPG': 'SWD08_',
+        'LEG': 'SWD11a_',
+        'RIV': 'SWD06_',
+        'WotF': 'SWD12a_',
+        'AtG': 'SWD13a_',
+        'CONV': 'SWD16a_',
+        'AoN': 'SWD17_'
+    }
 
+    code = codes[set_code] if set_code != 'AW' else codes[set_code][0]
+    url = 'http://lcg-cdn.fantasyflightgames.com/swd/' + code + str(card_num) + '.jpg'
     response = requests.get(url)
+
+    if response.status_code == 403 and set_code == 'AW':
+        i = 1
+        while response.status_code == 403:
+            url = 'http://lcg-cdn.fantasyflightgames.com/swd/' + codes[set_code][i] + str(card_num) + '.jpg'
+            response = requests.get(url)
+            i = i + 1
+
     with open('card_img.jpg', 'wb') as f:
         f.write(response.content)
 
     img = Image.open('card_img.jpg')
     img.show()
+
+    display_options(card, args)
 
 
 def find_pairings(card):
@@ -54,6 +75,11 @@ def display_info(card, args):
             if i != 0:
                 wrap = '\t' + wrap
             print('\t' + wrap)
+
+    display_options(card, args)
+
+
+def display_options(card, args):
     if card['type_code'] == 'character':
         option = input('\nEnter [i] to show card img, [p] for character pairings, ' +
             'or [s] to search another card:\n')
@@ -64,7 +90,7 @@ def display_info(card, args):
         print('Not a valid option.')
 
     if option == 'i':
-        show_card(card['set_code'], card['position'])
+        show_card(card['set_code'], card['position'], card, args)
     elif option == 's':
         search(args)
     elif option == 'p' and card['type_code'] == 'character':
