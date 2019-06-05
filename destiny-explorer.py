@@ -56,6 +56,13 @@ def find_pairings(card, args):
 
 
 def filter_results(args):
+    card_types = {
+        'char': 'character',
+        'upgr': 'upgrade',
+        'event': 'event',
+        'supp': 'support'
+    }
+    
     sql2 = ''
 
     if args['card_set'] == 'all':
@@ -70,8 +77,12 @@ def filter_results(args):
     else:
         sql2 = 'where set_code = \'' + args["card_set"] + '\''
 
+    
+    connector = 'where ' if args['t_format'] == 'inf' else ' and '
+    if args['card_type'] != 'all':
+        sql2 += connector + 'type_code = \'' + card_types[args['card_type']] + '\''
+
     return sql2
-    # if args['card_type'] == ''
 
 
 def search(args):
