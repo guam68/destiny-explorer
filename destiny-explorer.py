@@ -48,7 +48,7 @@ def search(args):
     card_id = input('Enter the card id or press enter to see card list: ')        
     response = requests.get(url + card_id)
     if response.status_code == 500:
-        # filter results by args
+        print(args)
         print('fail')
     else:
         card = response.json()
