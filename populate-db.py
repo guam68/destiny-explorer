@@ -1,9 +1,7 @@
 import requests
 import json
-import ast
 import credentials as cred
 from psycopg2 import connect
-import sys
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 url = 'https://swdestinydb.com/api/public/cards'

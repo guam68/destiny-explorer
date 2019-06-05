@@ -3,6 +3,9 @@ import requests
 from PIL import Image
 import json
 import textwrap
+import credentials as cred
+from psycopg2 import connect
+from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 
 def show_card(set_code, card_num, card, args):
@@ -39,8 +42,36 @@ def show_card(set_code, card_num, card, args):
     display_options(card, args)
 
 
-def find_pairings(card):
-    pass
+def find_pairings(card, args):
+    sql2 = filter_results(args)
+
+    con = connect(dbname='destiny', user=cred.login['user'], host='localhost', password=cred.login['password'])
+    con.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+    cur = con.cursor()
+
+    sql = 'select card_name from card ' + sql2
+
+    cur.execute(sql)
+    print(cur.fetchall())
+
+
+def filter_results(args):
+    sql2 = ''
+
+    if args['card_set'] == 'all':
+        if args['t_format'] == 'std':
+            sql2 = '''
+                where set_code in ('SoH', 'AoN', 'CONV', 'AtG', 'WotF', 'LEG', 'TPG', 'RIV') 
+            '''
+        elif args['t_format'] == 'tri':
+            sql2 = '''
+                where set_code in ('SoH', 'AoN', 'CONV') 
+            '''
+    else:
+        sql2 = 'where set_code = \'' + args["card_set"] + '\''
+
+    return sql2
+    # if args['card_type'] == ''
 
 
 def search(args):
@@ -94,7 +125,7 @@ def display_options(card, args):
     elif option == 's':
         search(args)
     elif option == 'p' and card['type_code'] == 'character':
-        find_pairings(card) 
+        find_pairings(card, args) 
 
 
 def main():
@@ -112,7 +143,7 @@ def main():
         '\tex. -c rbg\n \n')
     parser.add_argument('-f', dest='t_format', default='std', help='Restrict card pool by format. Options: [inf, std, tri]')
     parser.add_argument('-s', dest='card_set', default='all', help='Restrict card pool by set. ' +
-        'Options: [awk, sor, eaw, 2ps, leg, riv, wotf, atg, conv]\n \n')
+        'Options: [AW, SoR, EaW, TPS, LEG, RIV, WotF, AtG, CONV, AoN, SoH]\n \n')
 
     args = parser.parse_args()
 
