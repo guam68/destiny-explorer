@@ -47,12 +47,11 @@ def find_pairings(card, args):
 
     con = connect(dbname='destiny', user=cred.login['user'], host='localhost', password=cred.login['password'])
     con.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
-    cur = con.cursor()
-
-    sql = 'select card_name from card ' + sql2
-
-    cur.execute(sql)
-    print(cur.fetchall())
+    with con:
+        cur = con.cursor()
+        sql = 'select card_name from card ' + sql2
+        cur.execute(sql)
+        print(cur.fetchall())
 
 
 def filter_results(args):
@@ -61,6 +60,19 @@ def filter_results(args):
         'upgr': 'upgrade',
         'event': 'event',
         'supp': 'support'
+    }
+
+    colors = {
+        'r': 'red',
+        'g': 'gray',
+        'b': 'blue',
+        'y': 'yellow'
+    }
+
+    affinities = {
+        'h': 'hero',
+        'v': 'villain',
+        'n': 'neutral'
     }
     
     sql2 = ''
@@ -74,13 +86,27 @@ def filter_results(args):
             sql2 = '''
                 where set_code in ('SoH', 'AoN', 'CONV') 
             '''
+        else:
+            sql2 = 'where deck_limit > 0' 
     else:
         sql2 = 'where set_code = \'' + args["card_set"] + '\''
 
-    
-    connector = 'where ' if args['t_format'] == 'inf' else ' and '
     if args['card_type'] != 'all':
-        sql2 += connector + 'type_code = \'' + card_types[args['card_type']] + '\''
+        sql2 += ' and type_code = \'' + card_types[args['card_type']] + '\''
+
+    card_colors = []
+    for color in colors.keys():
+        if color in args['color']:
+            card_colors.append(colors[color])
+    card_colors = 'in ' + str(tuple(card_colors)) if len(card_colors) > 1 else '= \'' + card_colors[0] + '\''
+    sql2 += ' and faction_code ' + card_colors
+
+    affin = []
+    for aff in affinities.keys():
+        if aff in args['affinity']:
+            affin.append(affinities[aff])
+    card_aff = 'in ' + str(tuple(affin)) if len(affin) > 1 else '= \'' + affin[0] + '\''
+    sql2 += ' and affiliation_code ' + card_aff
 
     return sql2
 
@@ -90,8 +116,17 @@ def search(args):
     card_id = input('Enter the card id or press enter to see card list: ')        
     response = requests.get(url + card_id)
     if response.status_code == 500:
-        print(args)
-        print('fail')
+        print('\nFilter choices: ' + str(args) + '\n')
+        sql2 = filter_results(args)
+
+        con = connect(dbname='destiny', user=cred.login['user'], host='localhost', password=cred.login['password'])
+        con.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+
+        with con:
+            cur = con.cursor()
+            sql = 'select card_name from card ' + sql2
+            cur.execute(sql)
+            print(cur.fetchall())
     else:
         card = response.json()
         display_info(card, args)
