@@ -124,36 +124,45 @@ def search(args):
 
         with con:
             cur = con.cursor()
-            sql = 'select card_name from card ' + sql2
+            sql = 'select * from card ' + sql2
             cur.execute(sql)
-            print(cur.fetchall())
+            results = cur.fetchall()
+            for result in results:
+                display_info(result[-1], args, False)
     else:
         card = response.json()
         display_info(card, args)
+        display_options(card, args, True)
 
 
-def display_info(card, args):
-    print('\n' + card['name'])
-    print('\tColor: ' + card['faction_code'])
-    print('\tAffinity: ' + card['affiliation_name'])
-    print('\tRarity: ' + card['rarity_name'])
-    try:
-        print('\tSides: ' + str(card['sides']))
-    except KeyError:
-        pass
-    print('\tSet: ' + card['set_name'])
-    if card['cost']: print('\tCost: ' + str(card['cost']))
-    if card['health']: print('\tHealth: ' + str(card['health']))
-    if card['points']: print('\tPoints: ' + str(card['points']))
-    print('\tUnique: ' + str(card['is_unique']))
-    if card['text']: 
-        wrapped = textwrap.wrap('Text: \t' + card['text'])
-        for i, wrap in enumerate(wrapped):
-            if i != 0:
-                wrap = '\t' + wrap
-            print('\t' + wrap)
+def display_info(card, args, single):
+    if single:
+        print('\n' + card['name'])
+        print('\tColor: ' + card['faction_code'])
+        print('\tAffinity: ' + card['affiliation_name'])
+        print('\tRarity: ' + card['rarity_name'])
+        try:
+            print('\tSides: ' + str(card['sides']))
+        except KeyError:
+            pass
+        print('\tSet: ' + card['set_name'])
+        if card['cost']: print('\tCost: ' + str(card['cost']))
+        if card['health']: print('\tHealth: ' + str(card['health']))
+        if card['points']: print('\tPoints: ' + str(card['points']))
+        print('\tUnique: ' + str(card['is_unique']))
+        if card['text']: 
+            wrapped = textwrap.wrap('Text: \t' + card['text'])
+            for i, wrap in enumerate(wrapped):
+                if i != 0:
+                    wrap = '\t' + wrap
+                print('\t' + wrap)
+    else:
+        print(card['code'] + '\t' + card['set_code'] + '\t' +card['type_code'] + '    \t' + card['name'], end='')
+        try:
+            print('\t\tSides: ' + str(card['sides']))
+        except KeyError:
+            print()
 
-    display_options(card, args)
 
 
 def display_options(card, args):

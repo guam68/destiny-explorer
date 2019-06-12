@@ -15,7 +15,7 @@ cur = con.cursor()
 
 sql = """
     insert into card
-    values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+    values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
     on conflict do nothing;       
 """
 
@@ -63,5 +63,6 @@ for i, card in enumerate(response):
         card['imagesrc'],
         card['label'],
         card['cp'],
-        subtypes)
+        subtypes,
+        json.dumps(card))
     ) 
