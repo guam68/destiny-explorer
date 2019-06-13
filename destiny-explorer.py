@@ -59,7 +59,9 @@ def filter_results(args):
         'char': 'character',
         'upgr': 'upgrade',
         'event': 'event',
-        'supp': 'support'
+        'supp': 'support',
+        'dgrd': 'downgrade',
+        'plot': 'plot'
     }
 
     colors = {
@@ -113,7 +115,9 @@ def filter_results(args):
 
 def search(args):
     url = 'https://swdestinydb.com/api/public/card/' 
-    card_id = input('Enter the card id or press enter to see card list: ')        
+    card_id = input('Enter the card id or press enter to see card list (q to quit): ')
+    if card_id == 'q':
+        raise SystemExit
     response = requests.get(url + card_id)
     if response.status_code == 500:
         print('\nFilter choices: ' + str(args) + '\n')
@@ -129,10 +133,13 @@ def search(args):
             results = cur.fetchall()
             for result in results:
                 display_info(result[-1], args, False)
+            print()
+            search(args)
+            
     else:
         card = response.json()
-        display_info(card, args)
-        display_options(card, args, True)
+        display_info(card, args, True)
+        display_options(card, args)
 
 
 def display_info(card, args, single):
@@ -164,7 +171,6 @@ def display_info(card, args, single):
             print()
 
 
-
 def display_options(card, args):
     if card['type_code'] == 'character':
         option = input('\nEnter [i] to show card img, [p] for character pairings, ' +
@@ -187,7 +193,7 @@ def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
 
     parser.add_argument('-t', dest='card_type', default='all', help='Limit card pool by card type ' +
-        'Options: [all, char, supp, upgr, event, plot]\n') 
+        'Options: [all, char, supp, upgr, event, plot, dgrd]\n') 
     parser.add_argument('-a', dest='affinity', default='hvn', help='Limit card pool by affinity. ' +
         'Options: [h(ero), v(illain), n(eutral)]\n' +
         '\tNote: May contain any combination of the options\n' +
