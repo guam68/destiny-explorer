@@ -171,14 +171,55 @@ def display_info(card, args, single):
             print()
 
 
+def change_filters(args):
+    flag = False
+    filters = {
+        't': 'card_type',
+        'a': 'affinity',
+        'c': 'color',
+        'f': 'format',
+        's': 'card_set'
+    }
+    filter_options = {
+        't': ('Options: all, char, supp, upgr, event, plot, dgrd', 
+            ['all', 'char', 'supp', 'upgr', 'event', 'plot', 'dgrd']),
+        'a': ('Options: [h]ero, [v]illain, [n]eutral', 'hvn'),
+        'c': ('Options: [g]ray, [y]ellow, [b]lue, [r]ed', 'gybr'),
+        'f': ('Options: inf, std, tri', ['inf', 'std', 'tri']),
+        's': ('Options: AW, SoR, EaW, TPS, LEG, RIV, WotF, AtG, CONV, AoN, SoH', 
+            ['AW', 'SoR', 'Eaw', 'TPS', 'LEG', 'RIV', 'WotF', 'AtG', 'CONV', 'AoN', 'SoH'])
+    }
+
+    while not flag:
+        print('Select a filter to change.')
+        _filter = input('[t]ype, [a]ffinity, [c]olor, [f]ormat, [s]et: ')
+        if _filter in filters:
+            print('\nSelect a filter')
+            option = input(filter_options[_filter][0] + ': ')
+            if _filter == 'a' or _filter == 'c':
+                for char in option:
+                    if char in filter_options[_filter][1]:
+                        continue 
+                    else:
+                        print('Not a valid filter option.')
+                        break
+                args[filters[_filter]] = option 
+            elif option in filter_options[_filter][1]:
+                args[filters[_filter]] = option 
+        cont = input('Enter [r] to return to search or any key to change another filter: ')
+        flag = True if cont == 'r' else False
+    
+    search(args)
+
+
 def display_options(card, args):
     if card['type_code'] == 'character':
         option = input('\nEnter [i] to show card img, [p] for character pairings, ' +
-            'or [s] to search another card:\n')
+            '[f] to change filters, or [s] to search another card:\n')
     else:
         option = input('\nEnter [i] to show card img or [s] to search another card:\n')
     
-    if option not in 'isp':
+    if option not in 'ispf':
         print('Not a valid option.')
 
     if option == 'i':
@@ -187,6 +228,8 @@ def display_options(card, args):
         search(args)
     elif option == 'p' and card['type_code'] == 'character':
         find_pairings(card, args) 
+    elif option == 'f':
+        change_filters(args)
 
 
 def main():
@@ -195,11 +238,11 @@ def main():
     parser.add_argument('-t', dest='card_type', default='all', help='Limit card pool by card type ' +
         'Options: [all, char, supp, upgr, event, plot, dgrd]\n') 
     parser.add_argument('-a', dest='affinity', default='hvn', help='Limit card pool by affinity. ' +
-        'Options: [h(ero), v(illain), n(eutral)]\n' +
+        'Options: [h]ero, [v]illain, [n]eutral\n' +
         '\tNote: May contain any combination of the options\n' +
         '\tex. -a vn\n \n')
     parser.add_argument('-c', dest='color', default='rgby', help='Limit card pool by color. ' +
-        'Options: [g(ray), y(ellow), b(lue), r(ed)]\n' +
+        'Options: [g]ray, [y]ellow, [b]lue, [r]ed\n' +
         '\tNote: May contain any combination of the options\n' +
         '\tex. -c rbg\n \n')
     parser.add_argument('-f', dest='t_format', default='std', help='Restrict card pool by format. Options: [inf, std, tri]')
