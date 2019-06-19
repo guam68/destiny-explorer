@@ -43,15 +43,38 @@ def show_card(set_code, card_num, card, args):
 
 
 def find_pairings(card, args):
+
+    def get_pair(point):
+        pass
+
+
     sql2 = filter_results(args)
+    types = str((card['affiliation_code'], 'neutral'))
 
     con = connect(dbname='destiny', user=cred.login['user'], host='localhost', password=cred.login['password'])
     con.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
     with con:
         cur = con.cursor()
-        sql = 'select card_name from card ' + sql2
+        sql = ("select * from card where affiliation_code in " + types +
+            " and type_code = 'character'")
         cur.execute(sql)
-        print(cur.fetchall())
+        chars = cur.fetchall()
+
+    points = card['points'].split('/')
+    if len(points) > 1:
+        dice = input('Enter [e] for elite or [s] for single die: ')
+        if dice not in 'es':
+            dice = 'e'
+            print('Not a valid option. Matching for elite.')
+    p_cost = points[0] if dice == 's' else points[1]
+    searched_name = 'e' + card['name'] if dice == 'e' else card['name']
+
+    for char in chars:
+        c_points = dict(char[-1])['points'].split('/')
+        for i, c_cost in enumerate(c_points):
+            matched_name = 'e' + dict(char[-1])['name'] if i > 0 else dict(char[-1])['name'] 
+            if int(p_cost) + int(c_cost) <= 30:
+                print(searched_name + ', ' + matched_name + '\t\t' + dict(char[-1])['code'])
 
 
 def filter_results(args):
@@ -115,9 +138,11 @@ def filter_results(args):
 
 def search(args):
     url = 'https://swdestinydb.com/api/public/card/' 
-    card_id = input('Enter the card id or press enter to see card list (q to quit): ')
+    card_id = input('Enter the card id or press enter to see card list ([q] to quit, [f] to change filters): ')
     if card_id == 'q':
         raise SystemExit
+    elif card_id == 'f':
+        change_filters(args)
     response = requests.get(url + card_id)
     if response.status_code == 500:
         print('\nFilter choices: ' + str(args) + '\n')
