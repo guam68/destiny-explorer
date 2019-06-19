@@ -48,14 +48,15 @@ def find_pairings(card, args):
         pass
 
 
-    sql2 = filter_results(args)
+    sql2 = filter_results(True, args)
+    print(sql2)
     types = str((card['affiliation_code'], 'neutral'))
 
     con = connect(dbname='destiny', user=cred.login['user'], host='localhost', password=cred.login['password'])
     con.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
     with con:
         cur = con.cursor()
-        sql = ("select * from card where affiliation_code in " + types +
+        sql = ("select * from card " + sql2 + " and affiliation_code in " + types +
             " and type_code = 'character'")
         cur.execute(sql)
         chars = cur.fetchall()
@@ -74,10 +75,12 @@ def find_pairings(card, args):
         for i, c_cost in enumerate(c_points):
             matched_name = 'e' + dict(char[-1])['name'] if i > 0 else dict(char[-1])['name'] 
             if int(p_cost) + int(c_cost) <= 30:
-                print(searched_name + ', ' + matched_name + '\t\t' + dict(char[-1])['code'])
+                print(searched_name + ', ' + space_adj(matched_name) + ' ' + dict(char[-1])['code'])
+    
+    display_options(card, args)
 
 
-def filter_results(args):
+def filter_results(is_pairing, args):
     card_types = {
         'char': 'character',
         'upgr': 'upgrade',
@@ -116,6 +119,9 @@ def filter_results(args):
     else:
         sql2 = 'where set_code = \'' + args["card_set"] + '\''
 
+    if is_pairing:
+        return sql2
+
     if args['card_type'] != 'all':
         sql2 += ' and type_code = \'' + card_types[args['card_type']] + '\''
 
@@ -138,7 +144,7 @@ def filter_results(args):
 
 def search(args):
     url = 'https://swdestinydb.com/api/public/card/' 
-    card_id = input('Enter the card id or press enter to see card list ([q] to quit, [f] to change filters): ')
+    card_id = input('\nEnter the card id or press enter to see card list ([q] to quit, [f] to change filters): ')
     if card_id == 'q':
         raise SystemExit
     elif card_id == 'f':
@@ -146,7 +152,7 @@ def search(args):
     response = requests.get(url + card_id)
     if response.status_code == 500:
         print('\nFilter choices: ' + str(args) + '\n')
-        sql2 = filter_results(args)
+        sql2 = filter_results(False, args)
 
         con = connect(dbname='destiny', user=cred.login['user'], host='localhost', password=cred.login['password'])
         con.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
@@ -189,9 +195,10 @@ def display_info(card, args, single):
                     wrap = '\t' + wrap
                 print('\t' + wrap)
     else:
-        print(card['code'] + '\t' + card['set_code'] + '\t' +card['type_code'] + '    \t' + card['name'], end='')
+        print(card['code'] + '\t' + card['set_code'] + '\t' +card['type_code'] + '    \t' +
+            space_adj(card['name']), end='')
         try:
-            print('\t\tSides: ' + str(card['sides']))
+            print('\tSides: ' + str(card['sides']))
         except KeyError:
             print()
 
@@ -255,6 +262,13 @@ def display_options(card, args):
         find_pairings(card, args) 
     elif option == 'f':
         change_filters(args)
+
+
+def space_adj(string):
+    if len(string) < 20:
+        while len(string) < 20:
+            string = string + ' '
+    return string[0:19]
 
 
 def main():
