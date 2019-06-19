@@ -3,6 +3,7 @@ import requests
 from PIL import Image
 import json
 import textwrap
+from colorama import init, Fore, Style
 import credentials as cred
 from psycopg2 import connect
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
@@ -47,6 +48,15 @@ def find_pairings(card, args):
     def get_pair(point):
         pass
 
+    
+    txt_colors = {
+        'red': Fore.RED,
+        'blue': Fore.BLUE,
+        'yellow': Fore.YELLOW,
+        'gray': Fore.WHITE
+    }
+
+    reset = Style.RESET_ALL
 
     sql2 = filter_results(True, args)
     print(sql2)
@@ -70,12 +80,15 @@ def find_pairings(card, args):
     p_cost = points[0] if dice == 's' else points[1]
     searched_name = 'e' + card['name'] if dice == 'e' else card['name']
 
+
     for char in chars:
-        c_points = dict(char[-1])['points'].split('/')
+        char_obj = dict(char[-1])
+        c_points = char_obj['points'].split('/')
         for i, c_cost in enumerate(c_points):
-            matched_name = 'e' + dict(char[-1])['name'] if i > 0 else dict(char[-1])['name'] 
+            matched_name = 'e' + char_obj['name'] if i > 0 else char_obj['name'] 
             if int(p_cost) + int(c_cost) <= 30:
-                print(searched_name + ', ' + space_adj(matched_name) + ' ' + dict(char[-1])['code'])
+                print(txt_colors[card['faction_code']] + searched_name + reset + ', ' + 
+                    txt_colors[char_obj['faction_code']] + space_adj(matched_name) + reset + ' ' + char_obj['code'])
     
     display_options(card, args)
 
@@ -272,6 +285,7 @@ def space_adj(string):
 
 
 def main():
+    init()
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
 
     parser.add_argument('-t', dest='card_type', default='all', help='Limit card pool by card type ' +
