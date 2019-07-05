@@ -45,9 +45,6 @@ def show_card(set_code, card_num, card, args):
 
 
 def get_pair(chars, pairs):
-    # for p in pairs:
-    #     print(p)
-    #     print()
     for i, pair in enumerate(pairs):
         if int(pair[-1]) > 26:
             continue
@@ -111,15 +108,28 @@ def find_pairings(card, args):
             tot_cost = int(p_cost) + int(c_cost)
             if tot_cost <= 30:
                 pairs.append([[matched_name, char_obj], tot_cost])
+    
+    multi_pair = input('Enable multi-pair? (y/n): ')
+    if multi_pair == 'y':
+        pairs_list = get_pair(chars, pairs)
+    else:
+        pairs_list = pairs
 
-    pairs_list = get_pair(chars, pairs)
     for paired in pairs_list:
-        print(txt_colors[card['faction_code']] + searched_name + reset + ' ', end=' ')
+        point_color = Fore.RESET
         pair_point = paired.pop(-1)
-        for pair in paired:
-            print(txt_colors[pair[1]['faction_code']] + space_adj(pair[0]) + reset + ' ' + str(pair[1]['code']) + ' ', end=' ')
-        print()
+        if pair_point <= 26:
+            point_color = Fore.MAGENTA
+         
 
+        print(point_color + str(pair_point) + reset + ' - ' + txt_colors[card['faction_code']] + searched_name + 
+            reset + ' | ', end=' ')
+
+        for pair in paired:
+            print(txt_colors[pair[1]['faction_code']] + space_adj(pair[0]) + reset + ' ' + 
+                str(pair[1]['code']) + ' | ', end=' ')
+        print()
+    
     display_options(card, args)
 
 
@@ -217,29 +227,37 @@ def search(args):
 
 
 def display_info(card, args, single):
+    txt_colors = {
+        'red': Fore.RED,
+        'blue': Fore.BLUE,
+        'yellow': Fore.YELLOW,
+        'gray': Fore.WHITE
+    }
+    reset = Style.RESET_ALL
+
     if single:
-        print('\n' + card['name'])
-        print('\tColor: ' + card['faction_code'])
-        print('\tAffinity: ' + card['affiliation_name'])
-        print('\tRarity: ' + card['rarity_name'])
+        print(txt_colors[card['faction_code']] + '\n' + card['name'])
+        print('\tColor: ' + reset + card['faction_code'])
+        print(txt_colors[card['faction_code']] + '\tAffinity: ' + reset + card['affiliation_name'])
+        print(txt_colors[card['faction_code']] + '\tRarity: ' + reset + card['rarity_name'])
         try:
-            print('\tSides: ' + str(card['sides']))
+            print(txt_colors[card['faction_code']] + '\tSides: ' + reset + str(card['sides']))
         except KeyError:
             pass
-        print('\tSet: ' + card['set_name'])
-        if card['cost']: print('\tCost: ' + str(card['cost']))
-        if card['health']: print('\tHealth: ' + str(card['health']))
-        if card['points']: print('\tPoints: ' + str(card['points']))
-        print('\tUnique: ' + str(card['is_unique']))
+        print(txt_colors[card['faction_code']] + '\tSet: ' + reset + card['set_name'])
+        if card['cost']: print(txt_colors[card['faction_code']] + '\tCost: ' + reset + str(card['cost']))
+        if card['health']: print(txt_colors[card['faction_code']] + '\tHealth: ' + reset + str(card['health']))
+        if card['points']: print(txt_colors[card['faction_code']] + '\tPoints: ' + reset + str(card['points']))
+        print(txt_colors[card['faction_code']] + '\tUnique: ' + reset + str(card['is_unique']))
         if card['text']: 
-            wrapped = textwrap.wrap('Text: \t' + card['text'])
+            wrapped = textwrap.wrap(txt_colors[card['faction_code']] + 'Text: \t' + reset + card['text'])
             for i, wrap in enumerate(wrapped):
                 if i != 0:
                     wrap = '\t' + wrap
                 print('\t' + wrap)
     else:
-        print(card['code'] + '\t' + card['set_code'] + '\t' +card['type_code'] + '    \t' +
-            space_adj(card['name']), end='')
+        print(txt_colors[card['faction_code']] + card['code'] + reset + '\t' + card['set_code'] + '\t' + 
+            card['type_code'] + '    \t' + txt_colors[card['faction_code']] + space_adj(card['name']) + reset, end='')
         try:
             print('\tSides: ' + str(card['sides']))
         except KeyError:
