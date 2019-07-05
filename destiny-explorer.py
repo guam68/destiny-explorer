@@ -3,6 +3,7 @@ import requests
 from PIL import Image
 import json
 import textwrap
+import copy
 from colorama import init, Fore, Style
 import credentials as cred
 from psycopg2 import connect
@@ -44,28 +45,26 @@ def show_card(set_code, card_num, card, args):
 
 
 def get_pair(chars, pairs):
-        for i, pair in enumerate(pairs):
-            if int(pair[-1]) > 26:
-                continue
-            else:
-                tot_cost = pair.pop(-1)
+    # for p in pairs:
+    #     print(p)
+    #     print()
+    for i, pair in enumerate(pairs):
+        if int(pair[-1]) > 26:
+            continue
+        else:
+            pair_copy = copy.deepcopy(pair)
+            tot_cost = pair_copy.pop(-1)
+            
+        for char in chars:
+            char_obj = dict(char[-1])
+            c_points = char_obj['points'].split('/')
+            for j, c_cost in enumerate(c_points):
+                matched_name = 'e' + char_obj['name'] if j > 0 else char_obj['name']
+                cost = tot_cost + int(c_cost)
+                if cost <= 30:
+                    pairs.append(pair_copy + [[matched_name, char_obj], cost])
 
-            for char in chars:
-                # added = False
-                char_obj = dict(char[-1])
-                c_points = char_obj['points'].split('/')
-                for j, c_cost in enumerate(c_points):
-                    matched_name = 'e' + char_obj['name'] if j > 0 else char_obj['name']
-                    cost = tot_cost + int(c_cost)
-                    if cost <= 30:
-                        pairs.append(pair + [(matched_name, char_obj['faction_code']), cost])
-                        # added = True
-
-            # if not added:
-            #     pairs[i] += [tot_cost]
-        # print('*' * 100)
-        for pair in pairs:
-            print(pair)
+    return pairs
 
 
 def find_pairings(card, args):
@@ -100,29 +99,26 @@ def find_pairings(card, args):
         dice = 's'
     p_cost = points[0] if dice == 's' else points[1]
     searched_name = 'e' + card['name'] if dice == 'e' else card['name']
-# Find combo under 30. 
-# Check if unique and already in pairings
-# If more than 4 points still available, repeat
-# Find next character pairing
+
     pairs = [] 
-    # for char in chars:
-    #     char_obj = dict(char[-1])
-    #     c_points = char_obj['points'].split('/')
-    #     for i, c_cost in enumerate(c_points):
-    #         matched_name = 'e' + char_obj['name'] if i > 0 else char_obj['name'] 
-    #         if int(p_cost) + int(c_cost) <= 30:
-    #             print(txt_colors[card['faction_code']] + searched_name + reset + ', ' + 
-    #                 txt_colors[char_obj['faction_code']] + space_adj(matched_name) + reset + ' ' + char_obj['code'])
     for char in chars:
         char_obj = dict(char[-1])
         c_points = char_obj['points'].split('/')
+        if len(c_points) == 1:
+            continue
         for i, c_cost in enumerate(c_points):
             matched_name = 'e' + char_obj['name'] if i > 0 else char_obj['name']
             tot_cost = int(p_cost) + int(c_cost)
             if tot_cost <= 30:
-                pairs.append([(matched_name, char_obj['faction_code']), tot_cost])
+                pairs.append([[matched_name, char_obj], tot_cost])
 
-    get_pair(chars, pairs)
+    pairs_list = get_pair(chars, pairs)
+    for paired in pairs_list:
+        print(txt_colors[card['faction_code']] + searched_name + reset + ' ', end=' ')
+        pair_point = paired.pop(-1)
+        for pair in paired:
+            print(txt_colors[pair[1]['faction_code']] + space_adj(pair[0]) + reset + ' ' + str(pair[1]['code']) + ' ', end=' ')
+        print()
 
     display_options(card, args)
 
