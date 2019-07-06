@@ -311,7 +311,7 @@ def change_filters(args):
 
     while not flag:
         print('Select a filter to change.')
-        _filter = input('[t]ype, [a]ffinity, [c]olor, [f]ormat, [s]et: ')
+        _filter = input('[t]ype, [a]ffinity, [c]olor, [f]ormat, [s]et, [enter] to reset: ')
         if _filter in filters:
             print('\nSelect a filter')
             option = input(filter_options[_filter][0] + ': ')
@@ -325,7 +325,15 @@ def change_filters(args):
                 args[filters[_filter]] = option 
             elif option in filter_options[_filter][1]:
                 args[filters[_filter]] = option 
-        cont = input('Enter [r] to return to search or any key to change another filter: ')
+        elif _filter == '':
+            args['card_type'] = 'all'
+            args['affinity'] = 'hvn'
+            args['color'] = 'rgby'
+            args['t_format'] = 'std'
+            args['card_set'] = 'all'
+            print()
+
+        cont = input('[r] to return to search or [enter] to change another filter: ')
         flag = True if cont == 'r' else False
     
     search(args)
