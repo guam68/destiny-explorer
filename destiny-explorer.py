@@ -21,7 +21,8 @@ def show_card(set_code, card_num, card, args):
         'WotF': 'SWD12a_',
         'AtG': 'SWD13a_',
         'CONV': 'SWD16a_',
-        'AoN': 'SWD17_'
+        'AoN': 'SWD17_',
+        'SoH': 'SWD18_'
     }
 
     code = codes[set_code] if set_code != 'AW' else codes[set_code][0]
@@ -197,33 +198,58 @@ def filter_results(is_pairing, args):
 
 def search(args):
     url = 'https://swdestinydb.com/api/public/card/' 
-    card_id = input('\nEnter the card id or press enter to see card list ([q] to quit, [f] to change filters): ')
+    card_id = input('\nEnter the card id or press enter to see card list ([a] for adv search, ' +
+        '[q] to quit, [f] to change filters): ')
     if card_id == 'q':
         raise SystemExit
     elif card_id == 'f':
         change_filters(args)
-    response = requests.get(url + card_id)
-    if response.status_code == 500:
-        print('\nFilter choices: ' + str(args) + '\n')
-        sql2 = filter_results(False, args)
-
-        con = connect(dbname='destiny', user=cred.login['user'], host='localhost', password=cred.login['password'])
-        con.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
-
-        with con:
-            cur = con.cursor()
-            sql = 'select * from card ' + sql2
-            cur.execute(sql)
-            results = cur.fetchall()
-            for result in results:
-                display_info(result[-1], args, False)
-            print()
-            search(args)
-            
+    elif card_id == 'a':
+        adv_search(args)
     else:
-        card = response.json()
-        display_info(card, args, True)
-        display_options(card, args)
+        response = requests.get(url + card_id)
+        if response.status_code == 500:
+            print('\nFilter choices: ' + str(args) + '\n')
+            sql2 = filter_results(False, args)
+
+            con = connect(dbname='destiny', user=cred.login['user'], host='localhost', password=cred.login['password'])
+            con.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+
+            with con:
+                cur = con.cursor()
+                sql = 'select * from card ' + sql2
+                cur.execute(sql)
+                results = cur.fetchall()
+                for result in results:
+                    display_info(result[-1], args, False)
+                print()
+                search(args)
+                
+        else:
+            card = response.json()
+            display_info(card, args, True)
+            display_options(card, args)
+
+
+def adv_search(args):
+    choice = input('\n[t] to search by card text or [enter] to search by card name: ')
+    in_text = 'Enter text keyword: ' if choice == 't' else 'Enter character name: '
+    sql1 = ' and card_text' if choice == 't' else ' and card_name'
+    sql2 = filter_results(False, args)
+    keyword = '%' + input(in_text) + '%'
+
+    con = connect(dbname='destiny', user=cred.login['user'], host='localhost', password=cred.login['password'])
+    con.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+    with con:
+        cur = con.cursor()
+        sql = ("select * from card " + sql2 + sql1 + " ilike '" + keyword + "'")
+        cur.execute(sql)
+        cards = cur.fetchall()
+    
+    for card in cards:
+        display_info(card[-1], args, False)
+
+    search(args)
 
 
 def display_info(card, args, single):
