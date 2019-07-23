@@ -1,16 +1,21 @@
 # destiny-explorer
 
+## TODO
+
+- Add option to get proxies with one die side off
+- Export pairing listing + card info to file
+
 
 ## Overview
 ...
 
 ## Functionality
 
-- Select format, type, and affinity
-- Enter name or id
-    * If name or id entered: show card info, else: show list of card names/ids/set/color/point values(or cost)
-    * Once card is searched, show card info
+- Filter by format, type, color, set, and affinity
+- Enter name/keyword (adv search) or id
+    * Displays card info if individual card or lists card names/ids/set/color/point values(or cost)
     * Options to view card image and for characters, view available pairings
+    * Option to search for proxies for dice cards
 
 
 

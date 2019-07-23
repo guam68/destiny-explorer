@@ -8,6 +8,7 @@ from colorama import init, Fore, Style
 import credentials as cred
 from psycopg2 import connect
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
+import card_options as card_opt
 
 
 def show_card(set_code, card_num, card, args):
@@ -102,8 +103,7 @@ def find_pairings(card, args):
     for char in chars:
         char_obj = dict(char[-1])
         c_points = char_obj['points'].split('/')
-        if len(c_points) == 1:
-            continue
+
         for i, c_cost in enumerate(c_points):
             matched_name = 'e' + char_obj['name'] if i > 0 else char_obj['name']
             tot_cost = int(p_cost) + int(c_cost)
@@ -198,7 +198,7 @@ def filter_results(is_pairing, args):
 
 def search(args):
     url = 'https://swdestinydb.com/api/public/card/' 
-    card_id = input('\nEnter the card id or press enter to see card list ([a] for adv search, ' +
+    card_id = input('\nEnter the card id or [enter] to see card list ([a] for adv search, ' +
         '[q] to quit, [f] to change filters): ')
     if card_id == 'q':
         raise SystemExit
@@ -233,7 +233,7 @@ def search(args):
 
 def adv_search(args):
     choice = input('\n[t] to search by card text or [enter] to search by card name: ')
-    in_text = 'Enter text keyword: ' if choice == 't' else 'Enter character name: '
+    in_text = 'Enter text keyword: ' if choice == 't' else 'Enter card name: '
     sql1 = ' and card_text' if choice == 't' else ' and card_name'
     sql2 = filter_results(False, args)
     keyword = '%' + input(in_text) + '%'
@@ -285,7 +285,7 @@ def display_info(card, args, single):
         print(txt_colors[card['faction_code']] + card['code'] + reset + '\t' + card['set_code'] + '\t' + 
             card['type_code'] + '    \t' + txt_colors[card['faction_code']] + space_adj(card['name']) + reset, end='')
         try:
-            print('\tSides: ' + str(card['sides']))
+            print('\tSides: ' + str(card['sides']) + reset)
         except KeyError:
             print()
 
@@ -296,7 +296,7 @@ def change_filters(args):
         't': 'card_type',
         'a': 'affinity',
         'c': 'color',
-        'f': 'format',
+        'f': 't_format',
         's': 'card_set'
     }
     filter_options = {
@@ -331,22 +331,24 @@ def change_filters(args):
             args['color'] = 'rgby'
             args['t_format'] = 'std'
             args['card_set'] = 'all'
-            print()
+            print('Filters reset\n')
 
         cont = input('[r] to return to search or [enter] to change another filter: ')
+        
         flag = True if cont == 'r' else False
     
     search(args)
 
 
 def display_options(card, args):
+    proxy = '[x] to find a proxy die, ' if card['has_die'] else ' '
     if card['type_code'] == 'character':
         option = input('\nEnter [i] to show card img, [p] for character pairings, ' +
-            '[f] to change filters, or [s] to search another card:\n')
+            '[f] to change filters, ' + proxy + 'or [s] to search another card:\n')
     else:
-        option = input('\nEnter [i] to show card img or [s] to search another card:\n')
+        option = input('\nEnter [i] to show card img, ' + proxy + 'or [s] to search another card:\n')
     
-    if option not in 'ispf':
+    if option not in 'ispfx':
         print('Not a valid option.')
 
     if option == 'i':
@@ -357,6 +359,9 @@ def display_options(card, args):
         find_pairings(card, args) 
     elif option == 'f':
         change_filters(args)
+    elif option == 'x':
+        card_opt.get_proxy_dice(card) 
+        display_options(card, args)
 
 
 def space_adj(string):
