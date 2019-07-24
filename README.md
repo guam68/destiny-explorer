@@ -2,9 +2,9 @@
 
 ## TODO
 
-- Add option to get proxies with one die side off
 - Export pairing listing + card info to file
-
+- Add coloring/formating to text output of proxy dice
+- migrate functions to card_options
 
 ## Overview
 ...
@@ -15,7 +15,7 @@
 - Enter name/keyword (adv search) or id
     * Displays card info if individual card or lists card names/ids/set/color/point values(or cost)
     * Options to view card image and for characters, view available pairings
-    * Option to search for proxies for dice cards
+    * Option to search for dice card proxies 
 
 
 
