@@ -1,6 +1,7 @@
 import argparse
 from colorama import Fore, Style, init
 from explorer import Explorer
+from db_manager import DBManager
 
 
 def parse_args():
@@ -27,6 +28,8 @@ def parse_args():
 
 def main():
     init()
+    db_manager = DBManager()
+    db_manager.run()
     explorer = Explorer(parse_args())
     explorer.search()
 

@@ -11,6 +11,12 @@ class DBManager:
         self.response = []
 
 
+    def run(self):
+        choice = input('\n[Enter] to continue or any key for database check: ')
+        if choice != '':
+            db_manager = DBManager()
+            db_manager.check_for_db()
+
     def check_for_db(self):
         print('Checking for database...')
         con = connect(dbname='destiny', user=cred.login['user'], host='localhost', password=cred.login['password'])
