@@ -5,17 +5,22 @@ from psycopg2 import connect
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
+
 class DBManager:
     def __init__(self):
         self.url = 'https://swdestinydb.com/api/public/cards'
         self.response = []
 
 
-    def run(self):
-        choice = input('\n[Enter] to continue or any key for database check: ')
+    def run(self, is_forced):
+        if(not is_forced):
+            choice = input('\n[Enter] to continue or any key for database check: ')
+        else:
+            choice = 'run'
         if choice != '':
             db_manager = DBManager()
             db_manager.check_for_db()
+
 
     def check_for_db(self):
         print('Checking for database...')

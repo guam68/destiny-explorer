@@ -2,6 +2,7 @@ import argparse
 from colorama import Fore, Style, init
 from explorer import Explorer
 from db_manager import DBManager
+import psycopg2
 
 
 def parse_args():
@@ -29,9 +30,14 @@ def parse_args():
 def main():
     init()
     db_manager = DBManager()
-    db_manager.run()
+    db_manager.run(False)
     explorer = Explorer(parse_args())
-    explorer.search()
+
+    try:
+        explorer.search()
+    except psycopg2.DatabaseError as error:
+        print('Database error. Running database manager...')
+        db_manager.run(True)
 
 
 if __name__ == "__main__":
